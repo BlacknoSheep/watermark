@@ -2,9 +2,6 @@ import cv2
 import numpy as np
 import pymupdf  # PyMuPDF
 import os
-import tempfile
-
-tmp_path = tempfile.gettempdir()
 
 
 def imread_unicode(path: str):
