@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import pymupdf  # PyMuPDF
+import pymupdf
 import os
 
 
@@ -107,26 +107,27 @@ def add_watermark(
         x + (w - wm_w) // 2,
         y + (h - wm_h) // 2,
     )  # 图片上水印左上角坐标
-    watermark = cv2.resize(watermark, (wm_w, wm_h))
+    watermark_resized = cv2.resize(watermark, (wm_w, wm_h))
 
     # 将水印加到图片上（考虑透明通道）
-    if watermark.shape[2] == 4:
-        alpha_s = watermark[:, :, 3] / 255.0
+    if watermark_resized.shape[2] == 4:
+        alpha_s = watermark_resized[:, :, 3] / 255.0
         alpha_l = 1.0 - alpha_s
         for c in range(3):
             image[y_img : y_img + wm_h, x_img : x_img + wm_w, c] = (
-                alpha_s * watermark[:, :, c]
+                alpha_s * watermark_resized[:, :, c]
                 + alpha_l * image[y_img : y_img + wm_h, x_img : x_img + wm_w, c]
             )
     else:
-        image[y_img : y_img + wm_h, x_img : x_img + wm_w] = watermark
+        image[y_img : y_img + wm_h, x_img : x_img + wm_w] = watermark_resized
 
     # 将水印加到PDF页面上
     # 计算PDF上水印的坐标（左上，右下）
     x0, y0 = x_img * pdf_w / img_w, y_img * pdf_h / img_h
     x1, y1 = (x_img + wm_w) * pdf_w / img_w, (y_img + wm_h) * pdf_h / img_h
     rect = pymupdf.Rect(x0, y0, x1, y1)
-    pdf_page.insert_image(
+    # watermark_resized 适应的是图片的尺寸，这里应该用原水印图避免模糊
+    pdf_page.insert_image(  # type: ignore
         rect, pixmap=cv2img_to_pixmap(watermark), keep_proportion=True
     )
 
